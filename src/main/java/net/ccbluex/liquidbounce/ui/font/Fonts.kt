@@ -28,13 +28,13 @@ object Fonts : MinecraftInstance() {
     @FontDetails(fontName = "Minecraft Font")
     val minecraftFont: FontRenderer = mc.fontRendererObj
 
-    @FontDetails(fontName = "PT Regular", fontSize = 35)
+    @FontDetails(fontName = "Product Sans Regular", fontSize = 35)
     lateinit var font35: GameFontRenderer
 
-    @FontDetails(fontName = "PT Regular", fontSize = 40)
+    @FontDetails(fontName = "Product Sans Regular", fontSize = 40)
     lateinit var font40: GameFontRenderer
 
-    @FontDetails(fontName = "PT Bold", fontSize = 180)
+    @FontDetails(fontName = "Product Sans Bold", fontSize = 180)
     lateinit var fontBold180: GameFontRenderer
 
     private val CUSTOM_FONT_RENDERERS = hashMapOf<FontInfo, FontRenderer>()
@@ -44,9 +44,9 @@ object Fonts : MinecraftInstance() {
         LOGGER.info("Loading Fonts.")
 
         downloadFonts()
-        font35 = GameFontRenderer(getFont("PTSans-Regular.ttf", 40))
-        font40 = GameFontRenderer(getFont("PTSans-Regular.ttf", 45))
-        fontBold180 = GameFontRenderer(getFont("PTSans-Bold.ttf", 180))
+        font35 = GameFontRenderer(getFont("Product Sans Regular.ttf", 40))
+        font40 = GameFontRenderer(getFont("Product Sans Regular.ttf", 45))
+        fontBold180 = GameFontRenderer(getFont("Product Sans Bold.ttf", 180))
 
         try {
             CUSTOM_FONT_RENDERERS.clear()
