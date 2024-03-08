@@ -28,13 +28,13 @@ object Fonts : MinecraftInstance() {
     @FontDetails(fontName = "Minecraft Font")
     val minecraftFont: FontRenderer = mc.fontRendererObj
 
-    @FontDetails(fontName = "Roboto Medium", fontSize = 35)
+    @FontDetails(fontName = "PT Regular", fontSize = 35)
     lateinit var font35: GameFontRenderer
 
-    @FontDetails(fontName = "Roboto Medium", fontSize = 40)
+    @FontDetails(fontName = "PT Regular", fontSize = 40)
     lateinit var font40: GameFontRenderer
 
-    @FontDetails(fontName = "Roboto Bold", fontSize = 180)
+    @FontDetails(fontName = "PT Bold", fontSize = 180)
     lateinit var fontBold180: GameFontRenderer
 
     private val CUSTOM_FONT_RENDERERS = hashMapOf<FontInfo, FontRenderer>()
@@ -44,9 +44,9 @@ object Fonts : MinecraftInstance() {
         LOGGER.info("Loading Fonts.")
 
         downloadFonts()
-        font35 = GameFontRenderer(getFont("Roboto-Medium.ttf", 35))
-        font40 = GameFontRenderer(getFont("Roboto-Medium.ttf", 40))
-        fontBold180 = GameFontRenderer(getFont("Roboto-Bold.ttf", 180))
+        font35 = GameFontRenderer(getFont("PTSans-Regular.ttf", 40))
+        font40 = GameFontRenderer(getFont("PTSans-Regular.ttf", 45))
+        fontBold180 = GameFontRenderer(getFont("PTSans-Bold.ttf", 180))
 
         try {
             CUSTOM_FONT_RENDERERS.clear()
@@ -75,10 +75,10 @@ object Fonts : MinecraftInstance() {
 
     private fun downloadFonts() {
         try {
-            val outputFile = File(fontsDir, "roboto.zip")
+            val outputFile = File(fontsDir, "fonts.zip")
             if (!outputFile.exists()) {
                 LOGGER.info("Downloading fonts...")
-                download("$CLIENT_CLOUD/fonts/Roboto.zip", outputFile)
+                download("$CLIENT_CLOUD/fonts/fonts.zip", outputFile)
                 LOGGER.info("Extract fonts...")
                 extractZip(outputFile.path, fontsDir.path)
             }

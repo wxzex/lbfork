@@ -46,7 +46,8 @@ object ModuleManager : Listenable {
             ItemTeleport::class.java,
             Phase::class.java,
             Teleport::class.java,
-            TeleportHit::class.java
+            TeleportHit::class.java,
+            ColorMixer::class.java
         )
 
         // Register modules which have already been instanced (Kotlin objects)
