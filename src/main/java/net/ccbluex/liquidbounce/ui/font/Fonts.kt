@@ -44,8 +44,8 @@ object Fonts : MinecraftInstance() {
         LOGGER.info("Loading Fonts.")
 
         downloadFonts()
-        font35 = GameFontRenderer(getFont("Product Sans Regular.ttf", 40))
-        font40 = GameFontRenderer(getFont("Product Sans Regular.ttf", 45))
+        font35 = GameFontRenderer(getFont("Product Sans Regular.ttf", 35))
+        font40 = GameFontRenderer(getFont("Product Sans Regular.ttf", 40))
         fontBold180 = GameFontRenderer(getFont("Product Sans Bold.ttf", 180))
 
         try {
