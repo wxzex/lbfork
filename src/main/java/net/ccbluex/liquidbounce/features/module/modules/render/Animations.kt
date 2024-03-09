@@ -5,17 +5,22 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.render
 
+import net.ccbluex.liquidbounce.event.EventTarget
+import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.ModuleCategory
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.render.Animations.animations
 import net.ccbluex.liquidbounce.features.module.modules.render.Animations.defaultAnimation
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.value.BoolValue
+import net.ccbluex.liquidbounce.value.FloatValue
 import net.ccbluex.liquidbounce.value.IntegerValue
 import net.ccbluex.liquidbounce.value.ListValue
 import net.minecraft.client.entity.AbstractClientPlayer
 import net.minecraft.client.renderer.GlStateManager.*
 import net.minecraft.util.MathHelper
+import net.minecraft.util.MovingObjectPosition
 import org.lwjgl.opengl.GL11.glTranslated
 import org.lwjgl.opengl.GL11.glTranslatef
 
@@ -37,24 +42,53 @@ import org.lwjgl.opengl.GL11.glTranslatef
  *
  * @author CCBlueX
  */
-object Animations : Module("Animations", ModuleCategory.RENDER, gameDetecting = false) {
+object Animations : Module("Animations", ModuleCategory.RENDER) {
 
     // Default animation
     val defaultAnimation = OneSevenAnimation()
 
     private val animations = arrayOf(
-        OneSevenAnimation(),
-        PushdownAnimation(),
-        OldAnimation()
+            OneSevenAnimation(),
+            PushdownAnimation(),
+            OldAnimation(),
+            ExhiAnimation(),
+            SmoothAnimation(),
+            SwankAnimation(),
+            OldExhiAnimation(),
+            StellaAnimation(),
     )
 
     private val animationMode by ListValue("Mode", animations.map { it.name }.toTypedArray(), "Pushdown")
     val oddSwing by BoolValue("OddSwing", false)
-    val swingSpeed by IntegerValue("SwingSpeed", 15, 0..20)
+    @JvmStatic
+    val itemPosX by FloatValue("X", 0f, -1f.. 1f)
+    @JvmStatic
+    val itemPosY by FloatValue("Y", 0f, -1f.. 1f)
+    @JvmStatic
+    val itemPosZ by FloatValue("Z", 0f, -1f.. 1f)
+    @JvmStatic
+    val downScale by FloatValue("DownScale", 0f, -1f.. 1f)
+    val betterBobbing by BoolValue("Bobbing", false)
 
+    val test by BoolValue("Swing", false)
+
+    @JvmStatic
+    val swingSpeed by IntegerValue("SwingSpeed", 16, 1..20)
+
+    val thirdPersonBlocking by ListValue("ThirdPersonBlocking", arrayOf("1.7","1.8"),"1.8")
+
+    val onepointseven by BoolValue("1.7 Animation", false)
 
     fun getAnimation() = animations.firstOrNull { it.name == animationMode }
 
+    @EventTarget
+    fun onUpdate(event:UpdateEvent){
+        if(test) {
+            if (mc.thePlayer.isSwingInProgress && !mc.thePlayer.isBlocking && !mc.thePlayer.isUsingItem && mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK && !KillAura.blockStatus && !KillAura.renderBlocking) {
+                mc.entityRenderer.itemRenderer.resetEquippedProgress()
+            }
+        }
+    }
 }
 
 /**
@@ -96,7 +130,6 @@ abstract class Animation(val name: String) : MinecraftInstance() {
         rotate(f1 * -80f, 1f, 0f, 0f)
         scale(0.4f, 0.4f, 0.4f)
     }
-
 }
 
 /**
@@ -110,7 +143,6 @@ class OneSevenAnimation : Animation("OneSeven") {
         doBlockTransformations()
         translate(-0.5f, 0.2f, 0f)
     }
-
 }
 
 class OldAnimation : Animation("Old") {
@@ -119,6 +151,64 @@ class OldAnimation : Animation("Old") {
         doBlockTransformations()
     }
 }
+
+class ExhiAnimation : Animation("Swong") {
+    override fun transform(f1: Float, f: Float, clientPlayer: AbstractClientPlayer) {
+        val f6 = MathHelper.sin((MathHelper.sqrt_float(f1) * Math.PI).toFloat())
+        glTranslated(-0.03, (f6 * 0.062f).toDouble(), (f6 * 0).toDouble())
+        glTranslated(0.025, 0.09615, 0.0)
+        transformFirstPersonItem(f / 3, 0.0f)
+        rotate(-f6 * 9f, -f6 / 20f, -f6 / 20f, 1f)
+        rotate(-f6 * 55f, 1.2f, f6 / 4f, 0.36f)
+        if (mc.thePlayer.isSneaking) {
+            translate(-0.05, -0.05, 0.0)
+        }
+        doBlockTransformations()
+    }
+}
+
+class SmoothAnimation : Animation("Smooth") {
+    override fun transform(f1: Float, f: Float, clientPlayer: AbstractClientPlayer) {
+        val var9 = MathHelper.sin((MathHelper.sqrt_float(f1) * Math.PI).toFloat())
+        transformFirstPersonItem(f, 0.0f)
+        doBlockTransformations()
+        translate(-0.05f, 0.3f, 0.3f)
+        rotate(-var9 * 140.0f, 8.0f, 0.0f, 8.0f)
+        rotate(var9 * 90.0f, 8.0f, 0.0f, 8.0f)
+    }
+}
+
+class SwankAnimation : Animation("Swank") {
+    override fun transform(f1: Float, f: Float, clientPlayer: AbstractClientPlayer) {
+        transformFirstPersonItem(f, f1)
+        val var151 = MathHelper.sin(MathHelper.sqrt_float(f1) * 3.1415927f)
+        rotate(var151 * 30.0f, -var151, -0.0f, 9.0f)
+        rotate(var151 * 40.0f, 1.0f, -var151, -0.0f)
+        doBlockTransformations()
+    }
+}
+
+class OldExhiAnimation : Animation("OldSwong") {
+    override fun transform(f1: Float, f: Float, clientPlayer: AbstractClientPlayer) {
+        val var9 = MathHelper.sin(MathHelper.sqrt_float(f1) * 3.1415927f)
+        glTranslated(-0.04, 0.13, 0.0)
+        transformFirstPersonItem(f / 2.5f, 0.0f)
+        rotate(-var9 * 40.0f / 2.0f, var9 / 2.0f, 1.0f, 4.0f)
+        rotate(-var9 * 30.0f, 1.0f, var9 / 3.0f, -0.0f)
+        doBlockTransformations()
+    }
+}
+
+class StellaAnimation : Animation("Stella") {
+    override fun transform(f1: Float, f: Float, clientPlayer: AbstractClientPlayer) {
+        transformFirstPersonItem(f, f1)
+        translate(-0.5f, 0.4f, -0.2f)
+        rotate(32f, 0f, 1f, 0f)
+        rotate(-70f, 1f, 0f, 0f)
+        rotate(40f, 0f, 1f, 0f)
+    }
+}
+
 
 /**
  * Pushdown animation

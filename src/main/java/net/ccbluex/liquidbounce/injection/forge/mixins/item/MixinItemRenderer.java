@@ -10,6 +10,7 @@ import net.ccbluex.liquidbounce.features.module.modules.movement.NoSlow;
 import net.ccbluex.liquidbounce.features.module.modules.render.Animation;
 import net.ccbluex.liquidbounce.features.module.modules.render.Animations;
 import net.ccbluex.liquidbounce.features.module.modules.render.AntiBlind;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -17,19 +18,15 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.EnumAction;
-import net.minecraft.item.ItemMap;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemSword;
+import net.minecraft.item.*;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.lwjgl.opengl.GL11;
+import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static net.minecraft.client.renderer.GlStateManager.*;
 
@@ -73,22 +70,70 @@ public abstract class MixinItemRenderer {
     @Shadow
     protected abstract void doItemUsedTransformations(float swingProgress);
 
+    //@Shadow
+    //public abstract void renderItem(EntityLivingBase entityIn, ItemStack heldStack, ItemCameraTransforms.TransformType transform);
+
     @Shadow
-    public abstract void renderItem(EntityLivingBase entityIn, ItemStack heldStack, ItemCameraTransforms.TransformType transform);
+    private final RenderItem itemRenderer;
+
+    @Shadow
+    private boolean isBlockTranslucent(Block blockIn) {
+        return false;
+    }
+
+    public MixinItemRenderer(Minecraft mcIn) {
+        this.itemRenderer = mcIn.getRenderItem();
+    }
 
     @Shadow
     protected abstract void renderPlayerArm(AbstractClientPlayer clientPlayer, float equipProgress, float swingProgress);
+
+    public void renderItem(EntityLivingBase entityIn, ItemStack heldStack, ItemCameraTransforms.TransformType transform) {
+        if (heldStack != null) {
+            Item item = heldStack.getItem();
+            Block block = Block.getBlockFromItem(item);
+            GlStateManager.pushMatrix();
+            if (this.itemRenderer.shouldRenderItemIn3D(heldStack)) {
+                GlStateManager.scale(2.0F, 2.0F, 2.0F);
+                if (this.isBlockTranslucent(block)) {
+                    GlStateManager.depthMask(false);
+                }
+            } else {
+                if(Animations.INSTANCE.getState()){
+                    double factor = 1 - Animations.getDownScale();
+                    GlStateManager.scale(factor, factor, factor);
+                }
+            }
+
+            this.itemRenderer.renderItemModelForEntity(heldStack, entityIn, transform);
+            if (this.isBlockTranslucent(block)) {
+                GlStateManager.depthMask(true);
+            }
+
+            GlStateManager.popMatrix();
+        }
+
+    }
 
     /**
      * @author CCBlueX
      */
     @Overwrite
     public void renderItemInFirstPerson(float partialTicks) {
+        final Animations animations = Animations.INSTANCE;
+        final Animation animation;
         float f = 1f - (prevEquippedProgress + (equippedProgress - prevEquippedProgress) * partialTicks);
         EntityPlayerSP abstractclientplayer = mc.thePlayer;
         float f1 = abstractclientplayer.getSwingProgress(partialTicks);
         float f2 = abstractclientplayer.prevRotationPitch + (abstractclientplayer.rotationPitch - abstractclientplayer.prevRotationPitch) * partialTicks;
         float f3 = abstractclientplayer.prevRotationYaw + (abstractclientplayer.rotationYaw - abstractclientplayer.prevRotationYaw) * partialTicks;
+        float swingProgress = Animations.INSTANCE.getState() && Animations.INSTANCE.getOnepointseven() ?
+                abstractclientplayer.getSwingProgress(partialTicks) : 0f;
+        if(Animations.INSTANCE.getState()) {
+            GL11.glTranslated(Animations.getItemPosX(), Animations.getItemPosY(), Animations.getItemPosZ());
+            if(animations.getBetterBobbing())
+                GlStateManager.scale(10, 10, 10);
+        }
         rotateArroundXAndY(f2, f3);
         setLightMapFromPlayer(abstractclientplayer);
         rotateWithPlayerRotations(abstractclientplayer, partialTicks);
@@ -97,6 +142,11 @@ public abstract class MixinItemRenderer {
 
         if (itemToRender != null) {
             boolean isForceBlocking = (itemToRender.getItem() instanceof ItemSword && KillAura.INSTANCE.getRenderBlocking()) || NoSlow.INSTANCE.isUNCPBlocking();
+
+            if (Animations.INSTANCE.getState() && Animations.INSTANCE.getOnepointseven() && (itemToRender.getItem() instanceof ItemFishingRod || itemToRender.getItem() instanceof ItemCarrotOnAStick)) {
+                GlStateManager.translate(0.08F, -0.027F, -0.33F);
+                GlStateManager.scale(0.93F, 1.0F, 1.0F);
+            }
 
             if (itemToRender.getItem() instanceof ItemMap) {
                 renderItemMap(abstractclientplayer, f2, f, f1);
@@ -110,12 +160,9 @@ public abstract class MixinItemRenderer {
                     case EAT:
                     case DRINK:
                         performDrinking(abstractclientplayer, partialTicks);
-                        transformFirstPersonItem(f, f1);
+                        transformFirstPersonItem(f, swingProgress);
                         break;
                     case BLOCK:
-                        final Animations animations = Animations.INSTANCE;
-                        final Animation animation;
-
                         if (animations.handleEvents()) {
                             animation = animations.getAnimation();
                         } else { // Use 1.7 animation
@@ -127,11 +174,10 @@ public abstract class MixinItemRenderer {
                         }
                         break;
                     case BOW:
-                        transformFirstPersonItem(f, f1);
+                        transformFirstPersonItem(f, swingProgress);
                         doBowTransformations(partialTicks, abstractclientplayer);
                 }
             } else {
-                final Animations animations = Animations.INSTANCE;
 
                 if (!animations.handleEvents() || !animations.getOddSwing()) {
                     doItemUsedTransformations(f1);
@@ -140,6 +186,9 @@ public abstract class MixinItemRenderer {
                 transformFirstPersonItem(f, f1);
             }
 
+            if (Animations.INSTANCE.getState() && Animations.INSTANCE.getOnepointseven() && !itemRenderer.shouldRenderItemIn3D(itemToRender)) {
+                liquidBounce$onePointSevenItem();
+            }
             renderItem(abstractclientplayer, itemToRender, ItemCameraTransforms.TransformType.FIRST_PERSON);
         } else if (!abstractclientplayer.isInvisible()) {
             renderPlayerArm(abstractclientplayer, f, f1);
@@ -148,6 +197,24 @@ public abstract class MixinItemRenderer {
         popMatrix();
         disableRescaleNormal();
         RenderHelper.disableStandardItemLighting();
+    }
+
+    @Inject(method = "doBowTransformations", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;scale(FFF)V"))
+    private void preBowTransform(float partialTicks, AbstractClientPlayer clientPlayer, CallbackInfo ci) {
+        if (Animations.INSTANCE.getState() && Animations.INSTANCE.getOnepointseven()) {
+            GlStateManager.rotate(-335.0F, 0.0F, 0.0F, 1.0F);
+            GlStateManager.rotate(-50.0F, 0.0F, 1.0F, 0.0F);
+            GlStateManager.translate(0.0F, 0.5F, 0.0F);
+        }
+    }
+
+    @Inject(method = "doBowTransformations", at = @At(value = "TAIL"))
+    private void postBowTransform(float partialTicks, AbstractClientPlayer clientPlayer, CallbackInfo ci) {
+        if (Animations.INSTANCE.getState() && Animations.INSTANCE.getOnepointseven()) {
+            GlStateManager.translate(0.0F, -0.5F, 0.0F);
+            GlStateManager.rotate(50.0F, 0.0F, 1.0F, 0.0F);
+            GlStateManager.rotate(335.0F, 0.0F, 0.0F, 1.0F);
+        }
     }
 
 
@@ -159,5 +226,13 @@ public abstract class MixinItemRenderer {
         } else {
             GlStateManager.color(p_color_0_, p_color_1_, p_color_2_, p_color_3_);
         }
+    }
+
+    @Unique
+    private static void liquidBounce$onePointSevenItem() {
+        float scale = 1.5F / 1.7F;
+        GlStateManager.scale(scale, scale, scale);
+        GlStateManager.rotate(5.0F, 0.0F, 1.0F, 0.0F);
+        GlStateManager.translate(-0.29F, 0.149F, -0.0328F);
     }
 }
