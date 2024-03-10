@@ -7,12 +7,15 @@ package net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.
 
 import net.ccbluex.liquidbounce.features.module.modules.movement.LongJump
 import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.LongJumpMode
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 object MotionML : LongJumpMode("MotionML") {
     fun radians(degrees: Double): Double {
         return degrees * Math.PI / 180
     }
-    var rotationYaw: Float = player.yaw
+    var rotationYaw: Float = mc.player.yaw
     yaw = radians(rotationYaw.toDouble())
     override fun onUpdate() {
         mc.thePlayer.motionY = 0.42
