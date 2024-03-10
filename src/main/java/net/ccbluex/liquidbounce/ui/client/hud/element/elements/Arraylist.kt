@@ -212,7 +212,7 @@
                                     "CRainbow" -> RenderUtils.getRainbowOpaque(cRainbowSecValue.get(), saturationValue, brightnessValue, (index + 1) * distanceValue.get())
                                     "LiquidSlowly" -> ColorUtils.LiquidSlowly(System.nanoTime(), (index + 1) * distanceValue.get(), saturationValue, brightnessValue).rgb
                                     "Fade" -> ColorUtils.fade(Color(textRed, textBlue, textGreen), (index + 1) * distanceValue.get(), 100).rgb
-                                    "Rise" -> ColorUtils.hslRainbow(index+1,indexOffset=100*rainbowSpeed.get()).rgb
+                                    "Rise" -> ColorUtils.hslRainbow(index+1,indexOffset=100*cRainbowSecValue.get()).rgb
 
                                     else -> backgroundCustomColor
                                 }
@@ -230,7 +230,8 @@
                                     "CRainbow" -> RenderUtils.getRainbowOpaque(cRainbowSecValue.get(), saturationValue, brightnessValue, (index + 1) * distanceValue.get())
                                     "LiquidSlowly" -> ColorUtils.LiquidSlowly(System.nanoTime(), (index + 1) * distanceValue.get(), saturationValue, brightnessValue).rgb
                                     "Fade" -> ColorUtils.fade(Color(textRed, textBlue, textGreen), (index + 1) * distanceValue.get(), 100).rgb
-
+                                    "Rise" -> ColorUtils.hslRainbow(index+1,indexOffset=100*cRainbowSecValue.get()).rgb
+                                    
                                     else -> textCustomColor
                                 },
                                 textShadow
@@ -249,7 +250,8 @@
                                         "CRainbow" -> RenderUtils.getRainbowOpaque(cRainbowSecValue.get(), saturationValue, brightnessValue, (index + 1) * distanceValue.get())
                                         "LiquidSlowly" -> ColorUtils.LiquidSlowly(System.nanoTime(), (index + 1) * distanceValue.get(), saturationValue, brightnessValue).rgb
                                         "Fade" -> ColorUtils.fade(Color(textRed, textBlue, textGreen), (index + 1) * distanceValue.get(), 100).rgb
-
+                                        "Rise" -> ColorUtils.hslRainbow(index+1,indexOffset=100*cRainbowSecValue.get()).rgb
+                                        
                                         else -> rectCustomColor
                                     }
 
@@ -275,7 +277,8 @@
                                     "CRainbow" -> RenderUtils.getRainbowOpaque(cRainbowSecValue.get(), saturationValue, brightnessValue, (index + 1) * distanceValue.get())
                                     "LiquidSlowly" -> ColorUtils.LiquidSlowly(System.nanoTime(), (index + 1) * distanceValue.get(), saturationValue, brightnessValue).rgb
                                     "Fade" -> ColorUtils.fade(Color(textRed, textBlue, textGreen), (index + 1) * distanceValue.get(), 100).rgb
-
+                                    "Rise" -> ColorUtils.hslRainbow(index+1,indexOffset=100*cRainbowSecValue.get()).rgb
+                                    
                                     else -> backgroundCustomColor
                                 }
                             )
@@ -292,7 +295,8 @@
                                     "CRainbow" -> RenderUtils.getRainbowOpaque(cRainbowSecValue.get(), saturationValue, brightnessValue, (index + 1) * distanceValue.get())
                                     "LiquidSlowly" -> ColorUtils.LiquidSlowly(System.nanoTime(), (index + 1) * distanceValue.get(), saturationValue, brightnessValue).rgb
                                     "Fade" -> ColorUtils.fade(Color(textRed, textBlue, textGreen), (index + 1) * distanceValue.get(), 100).rgb
-
+                                    "Rise" -> ColorUtils.hslRainbow(index+1,indexOffset=100*cRainbowSecValue.get()).rgb
+                                    
                                     else -> textCustomColor
                                 },
                                 textShadow
@@ -311,7 +315,8 @@
                                         "CRainbow" -> RenderUtils.getRainbowOpaque(cRainbowSecValue.get(), saturationValue, brightnessValue, (index + 1) * distanceValue.get())
                                         "LiquidSlowly" -> ColorUtils.LiquidSlowly(System.nanoTime(), (index + 1) * distanceValue.get(), saturationValue, brightnessValue).rgb
                                         "Fade" -> ColorUtils.fade(Color(textRed, textBlue, textGreen), (index + 1) * distanceValue.get(), 100).rgb
-
+                                        "Rise" -> ColorUtils.hslRainbow(index+1,indexOffset=100*cRainbowSecValue.get()).rgb
+                                        
                                         else -> rectCustomColor
                                     }
 
