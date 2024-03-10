@@ -32,9 +32,4 @@ object MineLegacy : LongJumpMode("MineLegacy") {
 
     }
 
-    fun onPacket(event: PacketEvent) {
-        if (event.packet is S08PacketPlayerPosLook) {
-            TODO("Autodisable")
-        }
-    }
 }
