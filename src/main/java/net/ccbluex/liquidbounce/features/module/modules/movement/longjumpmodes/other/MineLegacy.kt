@@ -5,7 +5,6 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.other
 
-import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.event.PacketEvent
 import net.ccbluex.liquidbounce.features.module.modules.movement.LongJump
 import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.LongJumpMode
@@ -33,8 +32,7 @@ object MineLegacy : LongJumpMode("MineLegacy") {
 
     fun onPacket(event: PacketEvent) {
         if (event.packet is S08PacketPlayerPosLook) {
-            LiquidBounce.moduleManager[LongJump::class.java].state=false
-
+            LongJump.state = false
         }
     }
 }
