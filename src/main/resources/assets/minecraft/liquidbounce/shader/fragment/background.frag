@@ -1,87 +1,78 @@
 #version 120
 
-uniform float iTime;
-uniform vec2 iResolution;
+precision highp float;
 
-float field(in vec3 p,float s) {
-	float strength = 7. + .03 * log(1.e-6 + fract(sin(iTime) * 4373.11));
-	float accum = s/4.;
-	float prev = 0.;
-	float tw = 0.;
-	for (int i = 0; i < 26; ++i) {
-		float mag = dot(p, p);
-		p = abs(p) / mag + vec3(-.5, -.4, -1.5);
-		float w = exp(-float(i) / 7.);
-		accum += w * exp(-strength * pow(abs(mag - prev), 2.2));
-		tw += w;
-		prev = mag;
-	}
-	return max(0., 5. * accum / tw - .7);
+uniform vec2 resolution;
+uniform float time;
+uniform vec2 mouse;
+
+float random (in vec2 point) {
+  return fract(100.0 * sin(point.x + fract(100.0 * sin(point.y)))); // http://www.matteo-basei.it/noise
 }
 
-float field2(in vec3 p, float s) {
-	float strength = 7. + .03 * log(1.e-6 + fract(sin(iTime) * 4373.11));
-	float accum = s/4.;
-	float prev = 0.;
-	float tw = 0.;
-	for (int i = 0; i < 18; ++i) {
-		float mag = dot(p, p);
-		p = abs(p) / mag + vec3(-.5, -.4, -1.5);
-		float w = exp(-float(i) / 7.);
-		accum += w * exp(-strength * pow(abs(mag - prev), 2.2));
-		tw += w;
-		prev = mag;
-	}
-	return max(0., 5. * accum / tw - .7);
+float noise (in vec2 st) {
+  vec2 i = floor(st);
+  vec2 f = fract(st);
+
+  float a = random(i);
+  float b = random(i + vec2(1., 0.));
+  float c = random(i + vec2(0., 1.));
+  float d = random(i + vec2(1., 1.));
+
+  vec2 u = f * f * (3. - 2. * f);
+
+  return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
 }
 
-vec3 nrand3( vec2 co ) {
-	vec3 a = fract( cos( co.x*8.3e-3 + co.y )*vec3(1.3e5, 4.7e5, 2.9e5) );
-	vec3 b = fract( sin( co.x*0.3e-3 + co.y )*vec3(8.1e5, 1.0e5, 0.1e5) );
-	vec3 c = mix(a, b, 0.5);
-	return c;
+#define octaves 10
+
+float fbm (in vec2 p) {
+  float value = 0.;
+  float freq = 1.;
+  float amp = .5;
+
+  for (int i = 0; i < octaves; i++) {
+    value += amp * (noise((p - vec2(1.)) * freq));
+    freq *= 1.9;
+    amp *= .6;
+  }
+
+  return value;
 }
 
+float pattern(in vec2 p) {
+  vec2 offset = vec2(-.5);
 
-void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
-	vec2 uv = 2. * fragCoord.xy / iResolution.xy - 1.;
-	vec2 uvs = uv * iResolution.xy / max(iResolution.x, iResolution.y);
-	vec3 p = vec3(uvs / 4., 0) + vec3(1., -1.3, 0.);
-	p += .2 * vec3(sin(iTime / 16.), sin(iTime / 12.),  sin(iTime / 128.));
+  vec2 aPos = vec2(sin(time * .05), sin(time * .1)) * 6.;
+  vec2 aScale = vec2(3.);
+  float a = fbm(p * aScale + aPos);
 
-	float freqs[4];
-	// TODO: Add music support for liquidbounce
-	// https://github.com/CCBlueX/LiquidBounce-Issues/issues/3932
-	freqs[0] = 0.02;
-	freqs[1] = 0.07;
-	freqs[2] = 0.15;
-	freqs[3] = 0.30;
+  vec2 bPos = vec2(sin(time * .1), sin(time * .1)) * 1.;
+  vec2 bScale = vec2(.5);
+  float b = fbm((p + a) * bScale + bPos);
 
-	float t = field(p,freqs[2]);
-	float v = (1. - exp((abs(uv.x) - 1.) * 6.)) * (1. - exp((abs(uv.y) - 1.) * 6.));
+  vec2 cPos = vec2(-.6, -.5) + vec2(sin(-time * .01), sin(time * .1)) * 2.;
+  vec2 cScale = vec2(2.);
+  float c = fbm((p + b) * cScale + cPos);
 
-	//Second Layer
-	vec3 p2 = vec3(uvs / (4.+sin(iTime*0.11)*0.2+0.2+sin(iTime*0.15)*0.3+0.4), 1.5) + vec3(2., -1.3, -1.);
-	p2 += 0.25 * vec3(sin(iTime / 16.), sin(iTime / 12.),  sin(iTime / 128.));
-	float t2 = field2(p2,freqs[3]);
-	vec4 c2 = mix(.4, 0.5, v) * vec4(0.8 * t2 * t2 * t2 , 1.5 * t2 * t2 , 1.5 * t2, t2);
+  return c;
+}
 
+vec3 palette(in float t) {
+  vec3 a = vec3(.5, .5, .5);
+  vec3 b = vec3(.45, .25, .14);
+  vec3 c = vec3(1. ,1., 1.);
+  vec3 d = vec3(0., .1, .2);
 
-	//Let's add some stars
-	vec2 seed = p.xy * 2.0;
-	seed = floor(seed * iResolution.x);
-	vec3 rnd = nrand3( seed );
-	vec4 starcolor = vec4(pow(rnd.y,40.0));
-
-	//Second Layer
-	vec2 seed2 = p2.xy * 2.0;
-	seed2 = floor(seed2 * iResolution.x);
-	vec3 rnd2 = nrand3( seed2 );
-	starcolor += vec4(pow(rnd2.y,40.0));
-
-	fragColor = mix(freqs[3]-.3, 1., v) * vec4(1.5*freqs[2] * t * t* t , 1.2*freqs[1] * t * t, freqs[3]*t, 1.0)+c2+starcolor;
+  return a + b * cos(6.28318 * (c * t + d));
 }
 
 void main() {
-    mainImage(gl_FragColor, gl_FragCoord.xy);
+  vec2 p = gl_FragCoord.xy / resolution.xy;
+  p.x *= resolution.x / resolution.y;
+
+  float value = pow(pattern(p), 2.);
+  vec3 color  = palette(value);
+
+  gl_FragColor = vec4(color, 1.);
 }
