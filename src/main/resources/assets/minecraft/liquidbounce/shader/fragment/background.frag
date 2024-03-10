@@ -1,78 +1,83 @@
 #version 120
 
-precision highp float;
+uniform float iTime;
+uniform vec2 iResolution;
 
-uniform vec2 resolution;
-uniform float time;
-uniform vec2 mouse;
-
-float random (in vec2 point) {
-  return fract(100.0 * sin(point.x + fract(100.0 * sin(point.y)))); // http://www.matteo-basei.it/noise
+float rand(vec2 p){
+	p+=.2127+p.x+.3713*p.y;
+	vec2 r=4.789*sin(789.123*(p));
+	return fract(r.x*r.y);
 }
 
-float noise (in vec2 st) {
-  vec2 i = floor(st);
-  vec2 f = fract(st);
-
-  float a = random(i);
-  float b = random(i + vec2(1., 0.));
-  float c = random(i + vec2(0., 1.));
-  float d = random(i + vec2(1., 1.));
-
-  vec2 u = f * f * (3. - 2. * f);
-
-  return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+float sn(vec2 p){
+	vec2 i=floor(p-.5);
+	vec2 f=fract(p-.5);
+	f = f*f*f*(f*(f*6.0-15.0)+10.0);
+	float rt=mix(rand(i),rand(i+vec2(1.,0.)),f.x);
+	float rb=mix(rand(i+vec2(0.,1.)),rand(i+vec2(1.,1.)),f.x);
+	return mix(rt,rb,f.y);
 }
 
-#define octaves 10
+void main()
+{
+	vec2 uv = gl_FragCoord.xy / iResolution.y;
 
-float fbm (in vec2 p) {
-  float value = 0.;
-  float freq = 1.;
-  float amp = .5;
+	vec2 p=uv.xy*vec2(3.,4.3);
+	float f =
+	.5*sn(p)
+	+.25*sn(2.*p)
+	+.125*sn(4.*p)
+	+.0625*sn(8.*p)
+	+.03125*sn(16.*p)+
+	.015*sn(32.*p)
+	;
 
-  for (int i = 0; i < octaves; i++) {
-    value += amp * (noise((p - vec2(1.)) * freq));
-    freq *= 1.9;
-    amp *= .6;
-  }
+	float newT = iTime*0.4 + sn(vec2(iTime*1.))*0.1;
+	p.x-=iTime*0.2;
 
-  return value;
-}
+	p.y*=1.3;
+	float f2=
+	.5*sn(p)
+	+.25*sn(2.04*p+newT*1.1)
+	-.125*sn(4.03*p-iTime*0.3)
+	+.0625*sn(8.02*p-iTime*0.4)
+	+.03125*sn(16.01*p+iTime*0.5)+
+	.018*sn(24.02*p);
 
-float pattern(in vec2 p) {
-  vec2 offset = vec2(-.5);
+	float f3=
+	.5*sn(p)
+	+.25*sn(2.04*p+newT*1.1)
+	-.125*sn(4.03*p-iTime*0.3)
+	+.0625*sn(8.02*p-iTime*0.5)
+	+.03125*sn(16.01*p+iTime*0.6)+
+	.019*sn(18.02*p);
 
-  vec2 aPos = vec2(sin(time * .05), sin(time * .1)) * 6.;
-  vec2 aScale = vec2(3.);
-  float a = fbm(p * aScale + aPos);
+	float f4 = f2*smoothstep(0.0,1.,uv.y);
 
-  vec2 bPos = vec2(sin(time * .1), sin(time * .1)) * 1.;
-  vec2 bScale = vec2(.5);
-  float b = fbm((p + a) * bScale + bPos);
+	vec3 clouds = mix(vec3(-0.4,-0.3,-0.15),vec3(1.4,1.4,1.3),f4*f);
+	float lightning = sn((f3)+vec2(pow(sn(vec2(iTime*4.5)),6.)));
 
-  vec2 cPos = vec2(-.6, -.5) + vec2(sin(-time * .01), sin(time * .1)) * 2.;
-  vec2 cScale = vec2(2.);
-  float c = fbm((p + b) * cScale + cPos);
+	lightning *= smoothstep(0.0,1.,uv.y+0.5);
 
-  return c;
-}
+	lightning = smoothstep(0.76,1.,lightning);
+	lightning=lightning*2.;
 
-vec3 palette(in float t) {
-  vec3 a = vec3(.5, .5, .5);
-  vec3 b = vec3(.45, .25, .14);
-  vec3 c = vec3(1. ,1., 1.);
-  vec3 d = vec3(0., .1, .2);
 
-  return a + b * cos(6.28318 * (c * t + d));
-}
 
-void main() {
-  vec2 p = gl_FragCoord.xy / resolution.xy;
-  p.x *= resolution.x / resolution.y;
+	clouds*=0.8;
+	clouds += lightning +0.2;
 
-  float value = pow(pattern(p), 2.);
-  vec3 color  = palette(value);
 
-  gl_FragColor = vec4(color, 1.);
+	vec2 newUV = uv;
+	newUV.x-=iTime*0.3;
+	newUV.y+=iTime*3.;
+	float strength = sin(iTime*0.5+sn(newUV))*0.1+0.15;
+
+
+	vec3 painting = (clouds)+clamp((strength-0.1),0.,1.);
+
+	float r=1.-length(max(abs(gl_FragCoord.xy / iResolution.xy*2.-1.)-.5,0.));
+	painting*=r;
+
+	gl_FragColor = vec4(painting, 1.);
 }
