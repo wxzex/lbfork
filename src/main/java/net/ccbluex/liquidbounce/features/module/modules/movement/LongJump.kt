@@ -42,7 +42,7 @@ object LongJump : Module("LongJump", ModuleCategory.MOVEMENT) {
         Mineplex, Mineplex2, Mineplex3,
 
         // Other
-        Redesky, Hycraft, Buzz, MineLegacy,
+        Redesky, Hycraft, Buzz, MineLegacy, MotionML,
     )
 
     private val modes = longJumpModes.map { it.modeName }.toTypedArray()
