@@ -65,7 +65,7 @@ object Fly : Module("Fly", ModuleCategory.MOVEMENT, Keyboard.KEY_F) {
         MineSecure, HawkEye, HAC, WatchCat, Verus, Vulcan, VulcanOld,
 
         // Other
-        Jetpack, KeepAlive, Collide, Jump, Flag, FakeGround
+        Jetpack, KeepAlive, Collide, Jump, Flag, FakeGround,
     )
 
     private val modes = flyModes.map { it.modeName }.toTypedArray()
