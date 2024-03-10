@@ -18,6 +18,7 @@ object ColorUtils {
         character.code != 167 && character.code >= 32 && character.code != 127
 
     private val COLOR_PATTERN = Pattern.compile("(?i)§[0-9A-FK-OR]")
+    private val startTime=System.currentTimeMillis()
 
     val hexColors = IntArray(16)
 
@@ -87,7 +88,11 @@ object ColorUtils {
         val color = Color(Color.HSBtoRGB((time.toFloat() + count * 3000000f) / 2 / 1.0E9f, qd, sq))
         return Color(color.red / 255.0f * 1, color.green / 255.0f * 1, color.blue / 255.0f * 1, color.alpha / 255.0f)
     }
-
+    
+    fun hslRainbow(index: Int,lowest: Float=0.41f,bigest: Float=0.58f,indexOffset: Int=300,timeSplit: Int=3000):Color{
+        return Color.getHSBColor((abs(((((System.currentTimeMillis()-startTime).toInt()+index*indexOffset)/timeSplit.toFloat())%2)-1)*(bigest-lowest))+lowest,0.7f,1f)
+    }
+    
     @JvmStatic
     fun fade(color: Color, index: Int, count: Int): Color {
         val hsb = FloatArray(3)
