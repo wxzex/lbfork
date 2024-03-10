@@ -18,10 +18,7 @@ import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.m
 import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.mineplex.Mineplex2
 import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.mineplex.Mineplex3
 import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.ncp.NCP
-import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.other.Hycraft
-import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.other.Redesky
-import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.other.Buzz
-import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.other.MineLegacy
+import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.other.*
 import net.ccbluex.liquidbounce.utils.MovementUtils.isMoving
 import net.ccbluex.liquidbounce.utils.MovementUtils.speed
 import net.ccbluex.liquidbounce.utils.extensions.tryJump
@@ -42,7 +39,7 @@ object LongJump : Module("LongJump", ModuleCategory.MOVEMENT) {
         Mineplex, Mineplex2, Mineplex3,
 
         // Other
-        Redesky, Hycraft, Buzz, MineLegacy, MotionML
+        Redesky, Hycraft, Buzz, MineLegacy, MotionML,
     )
 
     private val modes = longJumpModes.map { it.modeName }.toTypedArray()

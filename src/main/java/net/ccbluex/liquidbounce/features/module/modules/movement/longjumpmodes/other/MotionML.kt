@@ -6,8 +6,7 @@
 package net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.other
 
 import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.LongJumpMode
-import kotlin.math.sin
-import kotlin.math.cos
+import kotlin.math.*
 
 object MotionML : LongJumpMode("MotionML") {
     fun toRadians(degrees: Double): Double {
