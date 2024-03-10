@@ -265,7 +265,7 @@ object TimerRange : Module("TimerRange", ModuleCategory.COMBAT) {
         val player = mc.thePlayer ?: return false
 
         val (predictX, predictY, predictZ) = entity.currPos.subtract(entity.prevPos)
-            .times(2 + predictEnemyPosition.toDouble())
+                .times(2 + predictEnemyPosition.toDouble())
 
         val boundingBox = entity.hitBox.offset(predictX, predictY, predictZ)
         val (currPos, oldPos) = player.currPos to player.prevPos
@@ -279,12 +279,12 @@ object TimerRange : Module("TimerRange", ModuleCategory.COMBAT) {
         player.setPosAndPrevPos(simPlayer.pos)
 
         val distance = searchCenter(boundingBox,
-            outborder = false,
-            random = false,
-            gaussianOffset = false,
-            predict = true,
-            lookRange = if (timerBoostMode == "Normal") rangeValue else randomRange,
-            attackRange = if (Reach.handleEvents()) Reach.combatReach else 3f
+                outborder = false,
+                random = false,
+                gaussianOffset = false,
+                predict = true,
+                lookRange = if (timerBoostMode == "Normal") rangeValue else randomRange,
+                attackRange = if (Reach.handleEvents()) Reach.combatReach else 3f
         )
 
         if (distance == null) {
@@ -410,8 +410,7 @@ object TimerRange : Module("TimerRange", ModuleCategory.COMBAT) {
      */
     private fun getAllEntities(): List<Entity> {
         return mc.theWorld.loadedEntityList.toList()
-            .filter { EntityUtils.isSelected(it, true) }
-            .toList()
+                .filter { EntityUtils.isSelected(it, true) }
     }
 
     /**
@@ -443,14 +442,17 @@ object TimerRange : Module("TimerRange", ModuleCategory.COMBAT) {
      * Separate condition to make it cleaner
      */
     private fun shouldResetTimer(): Boolean {
+        val nearestEntity = getNearestEntityInRange()
+
         if (mc.thePlayer != null && (mc.thePlayer.isSpectator || mc.thePlayer.isDead
-                || mc.thePlayer.isInWater || mc.thePlayer.isInLava
-                || mc.thePlayer.isInWeb || mc.thePlayer.isOnLadder
-                || mc.thePlayer.isRiding)) {
+                        || mc.thePlayer.isInWater || mc.thePlayer.isInLava
+                        || mc.thePlayer.isInWeb || mc.thePlayer.isOnLadder
+                        || mc.thePlayer.isRiding)) {
             return true
         }
 
-        return getNearestEntityInRange() != null
+        return nearestEntity != null && (mc.timer.timerSpeed < 1.0 || mc.timer.timerSpeed > 1.0)
+                && (!nearestEntity.isDead || EntityUtils.targetDead)
     }
 
     /**
@@ -487,7 +489,7 @@ object TimerRange : Module("TimerRange", ModuleCategory.COMBAT) {
             if (resetOnlagBack && packet is S08PacketPlayerPosLook) {
                 timerReset()
 
-                if (blink)
+                if (blinked)
                     unblink()
 
                 if (chatDebug) {
@@ -502,7 +504,7 @@ object TimerRange : Module("TimerRange", ModuleCategory.COMBAT) {
             if (resetOnKnockback && packet is S12PacketEntityVelocity && mc.thePlayer.entityId == packet.entityID) {
                 timerReset()
 
-                if (blink)
+                if (blinked)
                     unblink()
 
                 if (chatDebug) {
@@ -516,7 +518,7 @@ object TimerRange : Module("TimerRange", ModuleCategory.COMBAT) {
     }
 
     private fun blink(event: PacketEvent) {
-        if (event.eventType == EventState.RECEIVE && mc.thePlayer.ticksExisted > 10) {
+        if (event.eventType == EventState.RECEIVE && mc.thePlayer.ticksExisted > ticksValue) {
             event.cancelEvent()
             synchronized(packetsReceived) {
                 packetsReceived += event.packet

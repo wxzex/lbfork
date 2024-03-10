@@ -19,6 +19,7 @@ import net.ccbluex.liquidbounce.value.IntegerValue
 import net.ccbluex.liquidbounce.value.ListValue
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemArmor
 import net.minecraft.network.play.server.S0BPacketAnimation
 import net.minecraft.network.play.server.S13PacketDestroyEntities
 import net.minecraft.network.play.server.S14PacketEntity
@@ -48,6 +49,8 @@ object AntiBot : Module("AntiBot", ModuleCategory.MISC) {
     private val duplicateInWorld by BoolValue("DuplicateInWorld", false)
     private val duplicateInTab by BoolValue("DuplicateInTab", false)
     private val properties by BoolValue("Properties", false)
+    private val pieMatrixBedwars by BoolValue("PieMatrixBedwars", false)
+
 
     private val alwaysInRadius by BoolValue("AlwaysInRadius", false)
         private val alwaysRadius by FloatValue("AlwaysInRadiusBlocks", 20f, 5f..30f) { alwaysInRadius }
@@ -141,8 +144,26 @@ object AntiBot : Module("AntiBot", ModuleCategory.MISC) {
             mc.netHandler.playerInfoMap.count { entity.name == stripColor(it.getFullName()) } > 1)
             return true
 
-        if (alwaysInRadius && entity.entityId !in notAlwaysInRadiusList)
+        if (alwaysInRadius && entity.entityId !in notAlwaysInRadiusList) {
             return true
+        }
+
+        if (pieMatrixBedwars) {
+            val helmet = entity.inventory.armorInventory[3]
+            val chestplate = entity.inventory.armorInventory[2]
+
+            if (helmet == null || chestplate == null) {
+                return true
+            }
+            if (helmet.item == null || chestplate.item == null) {
+                return true
+            }
+
+            val helmetColor = (helmet.item as ItemArmor).getColor(helmet)
+            val chestplateColor = (chestplate.item as ItemArmor).getColor(chestplate)
+            return !(chestplateColor > 0 && helmetColor > 0 && chestplateColor == helmetColor)
+        }
+
 
         return entity.name.isEmpty() || entity.name == mc.thePlayer.name
     }
